@@ -33,9 +33,14 @@ COPY mobilefacenet.tflite .
 # so the container doesn't need internet access at runtime
 RUN python -c "from deepface import DeepFace; print('DeepFace models ready')" || true
 
-# Create a non-root user for security
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+# Create a non-root user for security and configure home directory for DeepFace cache
+RUN addgroup --system appgroup && \
+    adduser --system --home /home/appuser --ingroup appgroup appuser && \
+    mkdir -p /home/appuser/.deepface && \
+    chown -R appuser:appgroup /home/appuser
+
 USER appuser
+ENV HOME=/home/appuser
 
 # Expose the port FastAPI runs on
 EXPOSE 8001
