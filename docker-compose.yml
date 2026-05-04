@@ -1,0 +1,32 @@
+services:
+  face-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: simpeg-face-service:latest
+    container_name: face-service
+    restart: unless-stopped
+    ports:
+      - "${SERVICE_PORT:-8001}:8001"
+    environment:
+      - MODEL_PATH=/app/mobilefacenet.tflite
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+    volumes:
+      # Optional: mount a local model file instead of baking it into the image
+      # - ./mobilefacenet.tflite:/app/mobilefacenet.tflite:ro
+      - deepface_cache:/root/.deepface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+
+volumes:
+  deepface_cache:
